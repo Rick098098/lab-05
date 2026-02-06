@@ -5,36 +5,51 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 
 public class CityArrayAdapter extends ArrayAdapter<City> {
-    private ArrayList<City> cities;
-    private Context context;
 
-    public CityArrayAdapter(Context context, ArrayList<City> cities){
+    private final ArrayList<City> cities;
+    private final Context context;
+
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final CollectionReference citiesRef = db.collection("Cities");
+
+    public CityArrayAdapter(Context context, ArrayList<City> cities) {
         super(context, 0, cities);
         this.cities = cities;
         this.context = context;
     }
 
     @NonNull
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent){
+    @Override
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
-        if (view == null){
-            view = LayoutInflater.from(context).inflate(R.layout.layout_city, parent, false);
+        if (view == null) {
+            view = LayoutInflater.from(context).inflate(R.layout.content, parent, false);
         }
 
         City city = cities.get(position);
-        TextView movieName = view.findViewById(R.id.textCityName);
-        TextView movieYear = view.findViewById(R.id.textCityProvince);
 
-        movieName.setText(city.getName());
-        movieYear.setText(city.getProvince());
+        TextView tv = view.findViewById(R.id.content_view);
+        Button deleteBtn = view.findViewById(R.id.btn_delete_city);
+
+        tv.setText(city.getName() + ", " + city.getProvince());
+
+        deleteBtn.setOnClickListener(v -> {
+            if (city.getId() != null) {
+                citiesRef.document(city.getId()).delete();
+            }
+        });
 
         return view;
     }
